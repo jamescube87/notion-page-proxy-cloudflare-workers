@@ -17,6 +17,34 @@ const hostPath = hostOrigin + "/" + hostId;
 
 const proxyAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36';
 
+const addFixingStyle = `
+<style>
+header:has(.notion-topbar) { display: none !important; }
+main div:has(.notion-topbar-mobile) { display: none !important; }
+h1 { 
+	display: block !important;
+	font-size:1.1em !important; 
+	height: 1.2em !important;
+	padding: 0px !important;
+	margin: auto !important;
+	margin-top: 0.2em !important;
+	vertical-align: middle !important;
+}
+h1::before {
+	content: "";
+	display: block;
+	float: left;
+	width: 1.2em; height: 1.2em;
+	background-image: url('/raw/profile.png');
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: contain;
+	margin: auto;
+	margin-right: 0.2em;
+}
+</style>
+`;
+
 export default {
 
 	async fetchOptions(request: Request): Promise<Response> {
@@ -46,21 +74,9 @@ export default {
 		let rawText = await targetedResponse.text();
 
 		rawText =
-			///////////////////////////////////////////////////////////////////////////
-			// REF : https://github.com/stephenou/fruitionsite/blob/master/worker.js //
-			///////////////////////////////////////////////////////////////////////////
 			rawText.replace(
 				/<\/head>/g,
-				`<style>
-				div.notion-topbar > div > div:nth-child(3) { display: none !important; }
-				div.notion-topbar > div > div:nth-child(4) { display: none !important; }
-				div.notion-topbar > div > div:nth-child(5) { display: none !important; }
-				div.notion-topbar > div > div:nth-child(6) { display: none !important; }
-				div.notion-topbar-mobile > div:nth-child(3) { display: none !important; }
-				div.notion-topbar-mobile > div:nth-child(4) { display: none !important; }
-				div.notion-topbar > div > div:nth-child(1n).toggle-mode { display: block !important; }
-				div.notion-topbar-mobile > div:nth-child(1n).toggle-mode { display: block !important; }
-				</style></head>`);
+				`${addFixingStyle}</head>`);
 
 		return new Response(rawText, {
 			headers: {
