@@ -9,7 +9,11 @@
 	"compatibility_date": "2025-08-03",
 	"observability": {
 		"enabled": true
-	}
+	},
+  	"assets": {
+    	"directory": "./raw",
+    	"binding": "ASSETS" // env.ASSETS.fetch() 로도 접근 가능
+  	}
 	/**
 	 * Smart Placement
 	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
