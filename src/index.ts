@@ -39,6 +39,23 @@ export default {
 
 		let rawText = await targetedResponse.text();
 
+		rawText =
+			///////////////////////////////////////////////////////////////////////////
+			// REF : https://github.com/stephenou/fruitionsite/blob/master/worker.js //
+			///////////////////////////////////////////////////////////////////////////
+			rawText.replace(
+				/<\/head>/g,
+				`<style>
+				div.notion-topbar > div > div:nth-child(3) { display: none !important; }
+				div.notion-topbar > div > div:nth-child(4) { display: none !important; }
+				div.notion-topbar > div > div:nth-child(5) { display: none !important; }
+				div.notion-topbar > div > div:nth-child(6) { display: none !important; }
+				div.notion-topbar-mobile > div:nth-child(3) { display: none !important; }
+				div.notion-topbar-mobile > div:nth-child(4) { display: none !important; }
+				div.notion-topbar > div > div:nth-child(1n).toggle-mode { display: block !important; }
+				div.notion-topbar-mobile > div:nth-child(1n).toggle-mode { display: block !important; }
+				</style></head>`);
+
 		return new Response(rawText, {
 			headers: {
 				"Content-Type": "text/html; charset=utf-8"
