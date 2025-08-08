@@ -69,6 +69,20 @@ export default {
 		});
 	},
 
+	async fetchRaw(request: Request): Promise<Response> {
+
+		//
+		const requestUrl = new URL(request.url);
+
+		// RAW제거
+		const targetUrl = new URL(requestUrl.pathname.replace(/^\/raw(?=\/|$)/, ""), requestUrl.origin);
+		const targetRequest = new Request(
+			targetUrl.toString(), request
+		);
+
+		return await fetch(targetRequest);
+	},
+
 	async fetchApi(request: Request): Promise<Response> {
 		
 		//
@@ -197,6 +211,10 @@ export default {
 		// ROOT인 경우, 타겟 페이지로 프록시 하기
 		else if(requestUrl.pathname == '/') {
 			return this.fetchHost(request);
+		}
+
+		else if(requestUrl.pathname.startsWith("/raw")) {
+			return this.fetchRaw(request);
 		}
 
 		else if(requestUrl.pathname.startsWith("/api")) {
