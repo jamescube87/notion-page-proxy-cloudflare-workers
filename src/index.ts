@@ -14,14 +14,7 @@ const proxyAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/
 export default {
 
 	async fetchOptions(request: Request): Promise<Response> {
-		return new Response(null, {
-		status: 204,
-		headers: {
-			"Access-Control-Allow-Origin": "*",
-			"Access-Control-Allow-Headers": "*",
-			"Access-Control-Allow-Methods": "GET,HEAD,POST,OPTIONS",
-			"Access-Control-Max-Age": "86400"
-		}});
+		return new Response()
 	},
 
 	async fetchHost(request: Request): Promise<Response> {
@@ -40,7 +33,6 @@ export default {
 
 		return new Response(rawText, {
 			headers: {
-				// "Content-Type": "text/raw; charset=utf-8"
 				"Content-Type": "text/html; charset=utf-8"
 			},
 		});
@@ -56,18 +48,18 @@ export default {
 		let targetMethod = request.method;
 		let targetHeaders = new Headers();
 
-		targetHeaders.set("Content-Type", 'application/json; charset=UTF-8');
-		targetHeaders.set("User-Agent", proxyAgent);
-		targetHeaders.set("Host", hostSeed);
-		targetHeaders.set("Origin", hostOrigin);
-		targetHeaders.set("Referer", hostPath);
+		targetHeaders.set("content-type", 'application/json; charset=UTF-8');
+		targetHeaders.set("user-agent", proxyAgent);
+		targetHeaders.set("host", hostSeed);
+		targetHeaders.set("origin", hostOrigin);
+		targetHeaders.set("referer", hostPath);
 
 		targetMethod = 'POST';
 
 		const targetedResponse = await fetch(targetUrl.toString(), {
 			headers: targetHeaders,
 			method: targetMethod,
-			body: request.body
+			body: await request.body
 		});
 
 		let rawText = await targetedResponse.text();
@@ -106,19 +98,19 @@ export default {
 
 		rawText = 
 			rawText.replaceAll(
-				/window\.location\.href/g,
+				/window.location.href/g,
 				"windowlocationhref"
 			);
 
 		rawText = 
 			rawText.replaceAll(
-				/window\.location\.host/g,
+				/window.location.host/g,
 				"windowlocationhost"
 			);
 
 		rawText = 
 			rawText.replaceAll(
-				/window\.location\.origin/g,
+				/window.location.origin/g,
 				"windowlocationorigin"
 			);
 
@@ -141,7 +133,7 @@ export default {
 		headers: request.headers,
 		method: request.method,
 		body: request.method !== 'GET' && request.method !== 'HEAD'
-			? request.body
+			? await request.body
 			: undefined,
 		});
 
