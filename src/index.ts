@@ -1,14 +1,5 @@
 /**
  * Welcome to Cloudflare Workers! This is your first worker.
- *
- * - Run `npm run dev` in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your worker in action
- * - Run `npm run deploy` to publish your worker
- *
- * Bind resources to your worker in `wrangler.jsonc`. After adding bindings, a type definition for the
- * `Env` object can be regenerated with `npm run cf-typegen`.
- *
- * Learn more at https://developers.cloudflare.com/workers/
  */
 
 const pageId = "080f5186-e576-4195-a8de-b9f67985211b";
@@ -23,7 +14,14 @@ const proxyAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/
 export default {
 
 	async fetchOptions(request: Request): Promise<Response> {
-		return new Response()
+		return new Response(null, {
+		status: 204,
+		headers: {
+			"Access-Control-Allow-Origin": "*",
+			"Access-Control-Allow-Headers": "*",
+			"Access-Control-Allow-Methods": "GET,HEAD,POST,OPTIONS",
+			"Access-Control-Max-Age": "86400"
+		}});
 	},
 
 	async fetchHost(request: Request): Promise<Response> {
@@ -58,29 +56,22 @@ export default {
 		let targetMethod = request.method;
 		let targetHeaders = new Headers();
 
-		if (requestUrl.pathname == '/api/v3/getStatsigResults') { 
-			for(const [key, value] of request.headers) {
-				console.log(`I-Header: ${key} = ${value}`);
-			}
-		}
-		
-		targetHeaders.set("content-type", 'application/json; charset=UTF-8');
-		targetHeaders.set("user-agent", proxyAgent);
-		targetHeaders.set("host", hostSeed);
-		targetHeaders.set("origin", hostOrigin);
-		targetHeaders.set("referer", hostPath);
+		targetHeaders.set("Content-Type", 'application/json; charset=UTF-8');
+		targetHeaders.set("User-Agent", proxyAgent);
+		targetHeaders.set("Host", hostSeed);
+		targetHeaders.set("Origin", hostOrigin);
+		targetHeaders.set("Referer", hostPath);
 
 		targetMethod = 'POST';
 
 		const targetedResponse = await fetch(targetUrl.toString(), {
 			headers: targetHeaders,
 			method: targetMethod,
-			body: await request.body
+			body: request.body
 		});
 
 		let rawText = await targetedResponse.text();
 
-		// 응답 헤더 복사 및 CORS 허용
 		const responseStatus = targetedResponse.status;
 		const responseHeaders = new Headers(targetedResponse.headers);
 
@@ -107,16 +98,6 @@ export default {
 
 		let rawText = await targetedResponse.text();
 
-			console.log('ASCRPT >> ' + requestUrl.pathname);
-
-		if(requestUrl.pathname.includes("app")) {
-			console.log('APP >> ' + requestUrl.pathname);
-			rawText = 
-				`const replaceState = window.history.replaceState\n`+
-      			`window.history.replaceState = function(state) {\n` +
-      			`};\n` + rawText;
-		}
-
 		rawText = 
 			("var windowlocationhref=`" + hostPath + "`;\n") +
 			("var windowlocationhost=`" + hostSeed + "`;\n") + 
@@ -125,19 +106,19 @@ export default {
 
 		rawText = 
 			rawText.replaceAll(
-				/window.location.href/g,
+				/window\.location\.href/g,
 				"windowlocationhref"
 			);
 
 		rawText = 
 			rawText.replaceAll(
-				/window.location.host/g,
+				/window\.location\.host/g,
 				"windowlocationhost"
 			);
 
 		rawText = 
 			rawText.replaceAll(
-				/window.location.origin/g,
+				/window\.location\.origin/g,
 				"windowlocationorigin"
 			);
 
@@ -145,7 +126,6 @@ export default {
 		responseHeaders.set('Access-Control-Allow-Origin', '*');
 		responseHeaders.set('Access-Control-Allow-Headers', '*');
 
-		// 나머지 리소스는 그대로 전달
 		return new Response(rawText, {
 			status: targetedResponse.status,
 			headers: responseHeaders,
@@ -161,7 +141,7 @@ export default {
 		headers: request.headers,
 		method: request.method,
 		body: request.method !== 'GET' && request.method !== 'HEAD'
-			? await request.body
+			? request.body
 			: undefined,
 		});
 
@@ -169,7 +149,6 @@ export default {
 		responseHeaders.set('Access-Control-Allow-Origin', '*');
 		responseHeaders.set('Access-Control-Allow-Headers', '*');
 
-		// 나머지 리소스는 그대로 전달
 		return new Response(targetedResponse.body, {
 			status: targetedResponse.status,
 			headers: responseHeaders,
@@ -178,36 +157,24 @@ export default {
 
 	async fetch(request: Request, env: any, ctx: ExecutionContext): Promise<Response> {
 
-		// ROOT인 경우
-		const url = new URL(request.url);
-		// 
-		console.log('FETCH >> ' + url)
-
-		// 
+		const requestUrl = new URL(request.url);
+		
 		if(request.method === "OPTIONS") {
 			return this.fetchOptions(request);
   		}
 
 		// ROOT인 경우, 타겟 페이지로 프록시 하기
-		else if(url.pathname == '/') {
-	    // 	return Response.redirect(request.url + hostId, 302);
-		// }
-
-		// else if(url.pathname == "/" + hostId) {
+		else if(requestUrl.pathname == '/') {
 			return this.fetchHost(request);
 		}
 
-		else if(url.pathname.startsWith("/api")) {
+		else if(requestUrl.pathname.startsWith("/api")) {
 			return this.fetchApi(request);
 		}
 
-		else if(url.pathname.endsWith(".js")) {
+		else if(requestUrl.pathname.endsWith(".js")) {
 			return this.fetchScript(request);
 		}
-
-		else if(url.pathname == '/raw') {
-	    	return Response.redirect("/raw.html", 302);
-		}	
 
 		else {
 			return this.fetchElse(request);
