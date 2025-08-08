@@ -14,7 +14,15 @@ const proxyAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/
 export default {
 
 	async fetchOptions(request: Request): Promise<Response> {
-		return new Response()
+		return new Response(null, {
+			status: 200,
+			headers: {
+				'Access-Control-Allow-Origin': '*', 
+				'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE',
+				'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+				'Access-Control-Max-Age': '86400',
+			},
+		});
 	},
 
 	async fetchHost(request: Request): Promise<Response> {
@@ -48,18 +56,18 @@ export default {
 		let targetMethod = request.method;
 		let targetHeaders = new Headers();
 
-		targetHeaders.set("content-type", 'application/json; charset=UTF-8');
-		targetHeaders.set("user-agent", proxyAgent);
-		targetHeaders.set("host", hostSeed);
-		targetHeaders.set("origin", hostOrigin);
-		targetHeaders.set("referer", hostPath);
+		targetHeaders.set("Content-Type", 'application/json; charset=UTF-8');
+		targetHeaders.set("User-Agent", proxyAgent);
+		targetHeaders.set("Host", hostSeed);
+		targetHeaders.set("Origin", hostOrigin);
+		targetHeaders.set("Referer", hostPath);
 
 		targetMethod = 'POST';
 
 		const targetedResponse = await fetch(targetUrl.toString(), {
 			headers: targetHeaders,
 			method: targetMethod,
-			body: await request.body
+			body: request.body
 		});
 
 		let rawText = await targetedResponse.text();
@@ -84,7 +92,7 @@ export default {
 		headers: request.headers,
 		method: request.method,
 		body: request.method !== 'GET' && request.method !== 'HEAD'
-			? await request.body
+			? request.body
 			: undefined,
 		});
 
@@ -97,30 +105,31 @@ export default {
 		}
 
 		rawText = 
-			("var windowlocationhref=`" + hostPath + "`;\n") +
-			("var windowlocationhost=`" + hostSeed + "`;\n") + 
-			("var windowlocationhostname=`" + hostSeed + "`;\n") + 
-			("var windowlocationorigin=`" + hostOrigin + "`;\n") + rawText;
+			`var windowlocationhref="${hostPath}"; var windowlocationhost="${hostSeed}"; ` + 
+			`var windowlocationhostname="${hostSeed}"; var windowlocationorigin="${hostOrigin}";\n`
+			+ rawText;
 
 		rawText = 
 			rawText.replaceAll(
-				/window.location.href/g,
+				/window\.location\.href/g,
 				"windowlocationhref"
 			);
 
 		rawText = 
 			rawText.replaceAll(
-				/window.location.host/g,
+				/window\.location\.host/g,
 				"windowlocationhost"
 			);
 
 		rawText = 
 			rawText.replaceAll(
-				/window.location.origin/g,
+				/window\.location\.origin/g,
 				"windowlocationorigin"
 			);
 
 		const responseHeaders = new Headers(targetedResponse.headers);
+
+		responseHeaders.set("Content-Type", "application/javascript; charset=utf-8");
 		responseHeaders.set('Access-Control-Allow-Origin', '*');
 		responseHeaders.set('Access-Control-Allow-Headers', '*');
 
@@ -139,11 +148,12 @@ export default {
 		headers: request.headers,
 		method: request.method,
 		body: request.method !== 'GET' && request.method !== 'HEAD'
-			? await request.body
+			? request.body
 			: undefined,
 		});
 
 		const responseHeaders = new Headers(targetedResponse.headers);
+
 		responseHeaders.set('Access-Control-Allow-Origin', '*');
 		responseHeaders.set('Access-Control-Allow-Headers', '*');
 
