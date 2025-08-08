@@ -35,7 +35,7 @@ h1::before {
 	display: block;
 	float: left;
 	width: 1.2em; height: 1.2em;
-	background-image: url('/raw/profile.png');
+	background-image: url('/profile.png');
 	background-repeat: no-repeat;
 	background-position: center;
 	background-size: contain;
