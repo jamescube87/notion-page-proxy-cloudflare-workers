@@ -90,6 +90,12 @@ export default {
 
 		let rawText = await targetedResponse.text();
 
+		if(requestUrl.pathname.includes("app")) {
+			rawText = 
+				`const replaceState = window.history.replaceState; window.history.replaceState = function(state) {};\n`
+				 + rawText;
+		}
+
 		rawText = 
 			("var windowlocationhref=`" + hostPath + "`;\n") +
 			("var windowlocationhost=`" + hostSeed + "`;\n") + 
