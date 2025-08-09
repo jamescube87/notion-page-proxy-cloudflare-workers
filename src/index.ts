@@ -21,21 +21,20 @@ const addFixingStyle = `
 <style>
 header:has(.notion-topbar) { display: none !important; }
 main div:has(.notion-topbar-mobile) { display: none !important; }
-h1 { 
+main h1 { 
 	display: block !important;
 	font-size:1.1em !important; 
-	height: 1.2em !important;
 	padding: 0px !important;
 	margin: auto !important;
 	margin-top: 0.2em !important;
 	vertical-align: middle !important;
 }
-h1::before {
+main h1::before {
 	content: "";
 	display: block;
 	float: left;
 	width: 1.2em; height: 1.2em;
-	background-image: url('/profile.png');
+	background-image: url('/img/profile.png');
 	background-repeat: no-repeat;
 	background-position: center;
 	background-size: contain;
@@ -83,20 +82,6 @@ export default {
 				"Content-Type": "text/html; charset=utf-8"
 			},
 		});
-	},
-
-	async fetchRaw(request: Request): Promise<Response> {
-
-		//
-		const requestUrl = new URL(request.url);
-
-		// RAW제거
-		const targetUrl = new URL(requestUrl.pathname.replace(/^\/raw(?=\/|$)/, ""), requestUrl.origin);
-		const targetRequest = new Request(
-			targetUrl.toString(), request
-		);
-
-		return await fetch(targetRequest);
 	},
 
 	async fetchApi(request: Request): Promise<Response> {
@@ -227,10 +212,6 @@ export default {
 		// ROOT인 경우, 타겟 페이지로 프록시 하기
 		else if(requestUrl.pathname == '/') {
 			return this.fetchHost(request);
-		}
-
-		else if(requestUrl.pathname.startsWith("/raw")) {
-			return this.fetchRaw(request);
 		}
 
 		else if(requestUrl.pathname.startsWith("/api")) {
