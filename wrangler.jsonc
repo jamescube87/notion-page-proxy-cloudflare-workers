@@ -11,7 +11,7 @@
 		"enabled": true
 	},
   	"assets": {
-    	"directory": "./raw",
+    	"directory": "./public",
     	"binding": "ASSETS" // env.ASSETS.fetch() 로도 접근 가능
   	}
 	/**
