@@ -142,29 +142,18 @@ export default {
 				 + rawText;
 		}
 
-		rawText = 
-			`var windowlocationhref="${hostPath}"; var windowlocationhost="${hostSeed}"; ` + 
-			`var windowlocationhostname="${hostSeed}"; var windowlocationorigin="${hostOrigin}";\n`
-			+ rawText;
-
-		rawText = 
-			rawText.replaceAll(
-				/window\.location\.href/g,
-				"windowlocationhref"
-			);
-
-		rawText = 
-			rawText.replaceAll(
-				/window\.location\.host/g,
-				"windowlocationhost"
-			);
-
-		rawText = 
-			rawText.replaceAll(
-				/window\.location\.origin/g,
-				"windowlocationorigin"
-			);
-
+		if(rawText.search(/window\.location\.(href|host|origin)/g) != -1) {
+			rawText = 
+				`var windowlocationhref="${hostPath}"; var windowlocationhost="${hostSeed}"; ` + 
+				`var windowlocationhostname="${hostSeed}"; var windowlocationorigin="${hostOrigin}";\n`
+				+ rawText;
+	
+			rawText = rawText.replaceAll(
+				/window\.location\.(href|host|origin)/g,
+				(match, p1) => "windowlocation" + p1
+			);	
+		}
+		
 		const responseHeaders = new Headers(targetedResponse.headers);
 
 		responseHeaders.set("Content-Type", "application/javascript; charset=utf-8");
